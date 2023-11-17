@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sports Stats</title>
     <style>
+        /* Your existing CSS styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -18,31 +18,65 @@
         .athlete-card {
             display: flex;
             flex-direction: column;
-            border: 1px solid #ddd;
+            border: 2px solid #0077ff;
             margin: 10px;
             padding: 10px;
-            background-color: #fff;
+            background-color: #f9f9f9;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px; /* Set a fixed width for each athlete card */
+            width: 280px;
             text-align: center;
         }
 
         img {
             max-width: 100%;
             height: auto;
-            border-radius: 8px; /* Make the border radius equal to half of the max-width/height */
+            border-radius: 8px;
             margin-bottom: 10px;
         }
 
-        .horizontal-line {
-            border-top: 1px solid #ddd;
-            margin: 10px 0;
+        h2 {
+            margin: 5px 0;
+            color: #0077ff;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        .stats p {
+            margin: 0;
+        }
+
+        .ovr {
+            background-color: #0077ff;
+            color: white;
+            border-radius: 20px;
+            padding: 2px 10px;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-link {
+            margin-top: auto;
+            text-decoration: none;
+            color: #0077ff;
+            font-weight: bold;
+        }
+
+        .recommendation-link:hover {
+            text-decoration: underline;
+        }
+
+        .club-logo {
+            max-width: 50px;
+            height: auto;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
-
 <?php
 // Establish a connection to your MySQL database
 $servername = "localhost";
@@ -63,29 +97,14 @@ $result = $conn->query($sql);
 
 // Check if there are any rows in the result
 if ($result->num_rows > 0) {
-    $totalWeight = 0;
-    $totalHeight = 0;
-    $totalStrength = 0;
-    $totalAgility = 0;
-    $totalEndurance = 0;
-
     while ($row = $result->fetch_assoc()) {
-        $totalWeight += $row['weight'];
-        $totalHeight += $row['height'];
-        $totalStrength += $row['strength'];
-        $totalAgility += $row['agility'];
-        $totalEndurance += $row['endurance'];
-    }
+        // Calculate individual OVR for each athlete
+        $individualOVR = round(($row['weight'] + $row['height'] + $row['strength'] + $row['agility'] + $row['endurance']) / 5, 2);
 
-    $finalAverage = ($totalWeight + $totalHeight + $totalStrength + $totalAgility + $totalEndurance) / ($result->num_rows * 5);
-
-    // Reset the result set pointer to the beginning
-    $result->data_seek(0);
-
-    while ($row = $result->fetch_assoc()) {
+        // Display individual athlete data along with recommendation link
         echo "<div class='athlete-card'>
                 <div>
-                    <strong>OVR:</strong> " . round($finalAverage, 2) . "%
+                    <strong>OVR:</strong> " . $individualOVR . "%
                 </div>
                 <img src='{$row['picture_url']}'>
                 <h2>{$row['name']}</h2>
@@ -96,6 +115,7 @@ if ($result->num_rows > 0) {
                     <p><strong>Strength:</strong> {$row['strength']} lbs</p>
                     <p><strong>Agility:</strong> {$row['agility']} s</p>
                     <p><strong>Endurance:</strong> {$row['endurance']} min</p>
+                    <a href='get_workout_recommendation.php?id={$row['id']}'>View Recommendation</a>
                 </div>
               </div>";
     }
@@ -106,6 +126,6 @@ if ($result->num_rows > 0) {
 // Close the database connection
 $conn->close();
 ?>
-<a href="get_workout_recommendation.php">View Recommendations</a>
+
 </body>
 </html>

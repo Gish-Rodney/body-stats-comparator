@@ -38,7 +38,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>Workout Recommendation</h1>
+    <h1>Workout Recommendations</h1>
     <div class="recommendation">
         <?php
         class StatRanges {
@@ -93,24 +93,35 @@
             $statRangesManager = new StatRanges($statRanges);
             return $statRangesManager->determineLowStat($athleteData);
         }
+        if (isset($_GET['id'])) {
+            $athleteId = $_GET['id'];
         
-        $sql = "SELECT * FROM athlete_stats";
-        $result = $conn->query($sql);
+            // Fetch athlete data based on the provided ID
+            $sql = "SELECT * FROM athlete_stats WHERE id = ?";
+            $stmt = $conn->prepare($sql);
         
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $athleteData = [
-                'weight' => $row['weight'],
-                'height' => $row['height'],
-                'strength' => $row['strength'],
-                'agility' => $row['agility'],
-                'endurance' => $row['endurance'],
-                // Add other stats for the athlete
-            ];
+            if ($stmt) {
+                $stmt->bind_param("i", $athleteId);
+                $stmt->execute();
+                $result = $stmt->get_result();
+        
+                if ($result->num_rows > 0) {
+                    $row = $result->fetch_assoc();
+                    $athleteData = [
+                        'name' => $row['name'],
+                        'weight' => $row['weight'],
+                        'height' => $row['height'],
+                        'strength' => $row['strength'],
+                        'agility' => $row['agility'],
+                        'endurance' => $row['endurance'],
+                        // Add other stats for the athlete
+                    ];
+        
         
             $lowStat = determineLowStat($athleteData, $statRanges);
         
             // Debug output to check the identified lowest performing stat
+            echo "Workout Recommendation for: " . $athleteData['name'] . "<br>";
             echo "Identified Lowest Performing Stat: " . $lowStat . "<br>";
         
             // Proceed to fetch workout based on the lowest performing stat
@@ -126,7 +137,7 @@
             $stmt->execute();
             $result = $stmt->get_result();
             $workout = $result->fetch_assoc();
-        
+            
             echo "Lowest performing stat: " . $lowStat . "<br>";
             echo "Recommended Workout:<br>";
             echo "Name: " . $workout['name'] . "<br>";
@@ -135,7 +146,8 @@
         } else {
             echo "No athlete data found";
         }
-        
+            }
+        }
         $stmt->close();
         $conn->close();
         ?>
